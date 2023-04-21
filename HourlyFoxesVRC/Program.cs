@@ -156,7 +156,10 @@ namespace HourlyFoxesVRC
 
             try
             {
-                CreatePostFromImage(StartupImageFile, $"{GlobalUserAgentAppName} has restarted!{AutomatedSuffix}", $"Enjoy the foxes soon!{AutomatedSuffix}");
+                if (YesNoPrompt("Post starting message? (Y/N)"))
+                {
+                    CreatePostFromImage(StartupImageFile, $"{GlobalUserAgentAppName} has restarted!{AutomatedSuffix}", $"Enjoy the foxes soon!{AutomatedSuffix}");
+                }
             }
             catch (Exception ex)
             {
