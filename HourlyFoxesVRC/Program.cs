@@ -191,14 +191,30 @@ namespace HourlyFoxesVRC
 
             // Auth
             m_authApi = new AuthenticationApi(m_config);
-            VerifyAuthTokenResult res = m_authApi.VerifyAuthToken();
-            if (!res.Ok) 
-            { 
-                Console.WriteLine("Couldn't authenticate with token (probably expired).");
-                return LoginWithUserAndPassword();
+            VerifyAuthTokenResult res = null;
+            try
+            {
+                res = m_authApi.VerifyAuthToken();
             }
+            
+            catch (VRChat.API.Client.ApiException ex)
+            {
+                return DeleteTokenAndRelog();
+            }
+            if (!res.Ok) 
+            {
+                return DeleteTokenAndRelog();
+            }
+            
             m_currentToken = res.Token;
             return m_authApi.GetCurrentUser();
+        }
+
+        private CurrentUser DeleteTokenAndRelog()
+        {
+            Console.WriteLine("Couldn't authenticate with token (probably expired).");
+            File.Delete(TokenFileName);
+            return LoginWithUserAndPassword();
         }
 
         private CurrentUser LoginWithUserAndPassword()
@@ -291,7 +307,11 @@ namespace HourlyFoxesVRC
             {
                 if (!skipLogout)
                 {
-                    if (YesNoPrompt("Do you want to logout? (Y/N)")) { m_authApi?.Logout(); }
+                    if (YesNoPrompt("Do you want to logout? (Y/N)")) 
+                    { 
+                        m_authApi?.Logout();
+                        if (File.Exists(TokenFileName)) { File.Delete(TokenFileName); }
+                    }
                 }
             }
             
